@@ -1,6 +1,6 @@
 {
 	"name": "@encriva/env-sync",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"description": "Encrypted environment variables synchronization tool with database support",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -8,6 +8,10 @@
 		"env-sync": "dist/cli.js"
 	},
 	"scripts": {
+		"test:cli": "npm run build && env-sync echo Starting application...",
+		"test:cli:force-upload": "npm run build && env-sync --force-upload-variables echo Starting application...",
+		"test:cli:regular-upload": "npm run build && env-sync --upload-variables echo Starting application...",
+		"test:cli:both-upload": "npm run build && env-sync --upload-variables --force-upload-variables echo Starting application...",
 		"build": "tsc",
 		"prepublishOnly": "npm run build",
 		"test": "jest",
@@ -30,8 +34,13 @@
 	"author": "Encriva <support@encriva.com>",
 	"license": "MIT",
 	"dependencies": {
+		"chalk": "^5.4.1",
+		"commander": "^14.0.0",
 		"dotenv": "^16.5.0",
-		"mongodb": "^5.0.0"
+		"inquirer": "^12.6.3",
+		"mongodb": "^5.0.0",
+		"punycode": "^2.3.1",
+		"tslog": "^4.9.3"
 	},
 	"devDependencies": {
 		"@types/jest": "^29.5.0",

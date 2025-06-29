@@ -1,4 +1,4 @@
-import { IStorage, MongoStorageOptions, StorageOptions, AdapterConfig } from './interfaces';
+import { IStorage, MongoStorageOptions, StorageOptions, AdapterConfig, Adapter } from './interfaces';
 import { MongoAdapter as MongoAdapter } from './adapters/mongo';
 import { getStorageConfig, getDefaultOptions, getSecretKey } from './utils/config';
 
@@ -6,7 +6,7 @@ import { getStorageConfig, getDefaultOptions, getSecretKey } from './utils/confi
  * Storage sınıfı, adaptör tipine göre uygun depolama çözümünü sağlar
  */
 export class Storage implements IStorage {
-	private storage: IStorage;
+	private storage: Adapter;
 
 	/**
 	 * Yeni bir Storage örneği oluşturur
@@ -59,6 +59,10 @@ export class Storage implements IStorage {
 	 */
 	public async getAll(): Promise<Record<string, any>> {
 		return this.storage.getAll();
+	}
+
+	public async getAdapter(): Promise<Adapter> {
+		return this.storage;
 	}
 }
 

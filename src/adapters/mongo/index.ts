@@ -1,7 +1,9 @@
 import { MongoClient, Db, Collection } from 'mongodb';
 import { IStorage, MongoStorageOptions } from '../../interfaces';
 import { createHash, createCipheriv, createDecipheriv, randomBytes } from 'crypto';
-import { getStorageConfig, getDefaultOptions, getSecretKey } from '../../utils/config';
+import { getStorageConfig, getDefaultOptions, getSecretKey, getBlacklistVariables } from '../../utils/config';
+import { isDeepStrictEqual } from 'util';
+
 
 export class MongoAdapter implements IStorage {
 	private client: MongoClient;
@@ -115,6 +117,22 @@ export class MongoAdapter implements IStorage {
 		if (!result) return null;
 
 		return this.decrypt(result.value);
+	}
+
+	public async getSameValues(envVars: Record<string, string>): Promise<string[]> {
+		await this.connect();
+		const variablesBlacklist = getBlacklistVariables();
+		const allVariables = await this.getAll();
+
+		const sameValues = Object.keys(allVariables).filter((key) => {
+			const value1 = allVariables[key];
+			const value2 = envVars[key];
+			if (variablesBlacklist.includes(key)) return false;
+
+			return String(value1) === String(value2);
+		});
+
+		return sameValues;
 	}
 
 	public async delete(key: string): Promise<void> {

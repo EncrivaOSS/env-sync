@@ -5,12 +5,15 @@ export interface StorageOptions {
 	secretKey?: string;
 }
 
-export interface IStorage {
+export interface Adapter {
 	set(key: string, value: any): Promise<void>;
 	get(key: string): Promise<any>;
 	delete(key: string): Promise<void>;
 	getAll(): Promise<Record<string, any>>;
+	getSameValues(envVars: Record<string, string>): Promise<string[]>;
 }
+
+export type IStorage = Omit<Adapter, 'getSameValues'>;
 
 export interface MongoStorageOptions extends StorageOptions {
 	url: string;

@@ -73,3 +73,7 @@ export function getDefaultOptions(adapter: string): Record<string, any> {
 		collectionName: 'environment'
 	};
 }
+
+export function getBlacklistVariables(): string[] {
+	return ['ENVSYNC_SECRET_KEY', 'ENVSYNC_ADAPTER_URL'];
+}
