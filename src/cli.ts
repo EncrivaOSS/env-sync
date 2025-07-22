@@ -19,6 +19,8 @@ program
 	.option('--no-logging', 'Disable logging')
 	.option('--secret <key>', 'Encryption key')
 	.option('--adapter-url <url>', 'MongoDB connection URL')
+	.option('--select-variables <variables>', 'Comma-separated list of variables to select (e.g., VAR1,VAR2)')
+	.option('--auto-group', 'Automatically group variables by prefix (e.g., MYAPP_) (experimental)')
 	.showHelpAfterError(true)
 	.allowUnknownOption(true)
 	.allowExcessArguments(true)
@@ -30,6 +32,8 @@ program
 		const forceUploadVariables = options.forceUploadVariables;
 		const secretKey = options.secret || process.env.ENVSYNC_SECRET_KEY || config?.secret;
 		const adapterURL = options.adapterUrl || process.env.ENVSYNC_ADAPTER_URL || config?.adapterURL;
+		const selectVariables = options.selectVariables ? options.selectVariables.split(',').map((v: string) => v.trim()) : [];
+		const autoGroup = options.autoGroup || false;
 		const logger = new Logger({
 			name: 'envSync',
 			hideLogPositionForProduction: true,
@@ -37,6 +41,14 @@ program
 			stylePrettyLogs: true,
 			type: options.noLogging ? 'hidden' : 'pretty'
 		});
+
+		if (selectVariables.length > 0) {
+			logger.info(`Selecting variables: ${selectVariables.join(', ')}`);
+		}
+
+		if (autoGroup) {
+			logger.warn('Auto grouping is experimental and may not work as expected.');
+		}
 
 		if (forceUploadVariables && uploadVariables) {
 			logger.error('You cannot use --force-upload-variables and --upload-variables at the same time.');
@@ -120,16 +132,61 @@ program
 				}
 			}
 
-			let newEnv = [
-				'# Updated by env-sync',
-				'# Updated at ' + new Date().toISOString() + ' UTC',
-			].join('\n') + '\n\n';
+			let newEnv: any[] | string = [
+				'# Updated by @encriva/env-sync@' + require('../package.json').version,
+				'# Updated at ' + new Date().toISOString() + ' UTC'
+			];
 
 			for (const [key, value] of Object.entries(envVars)) {
-				newEnv += `${key}="${value}"\n`;
+				if (selectVariables.length > 0 && !selectVariables.includes(key) && !variablesBlacklist.includes(key)) {
+					logger.info(`Skipping variable not in selection: ${key}`);
+					continue;
+				}
+
+				newEnv.push([key, value]);
 			}
 
-			fs.writeFileSync(envPath, newEnv);
+			if (autoGroup) {
+				newEnv = newEnv.sort((a: string[], b: string[]) => {
+					const prefixA = a[0].split('_')[0];
+					const prefixB = b[0].split('_')[0];
+					return prefixA.localeCompare(prefixB);
+				});
+
+				// add \n between different groups
+				const groupedEnv: string[] = [];
+				let lastPrefix = '';
+
+				for (const line of newEnv) {
+					if (Array.isArray(line)) {
+						const prefix = line[0].split('_')[0];
+						if (prefix !== lastPrefix && lastPrefix !== '') {
+							groupedEnv.push(''); // add empty line between groups
+						}
+						lastPrefix = prefix;
+					}
+					groupedEnv.push(line);
+				}
+
+				newEnv = groupedEnv;
+				newEnv.sort((a: string[], b: string[]) => {
+					if (Array.isArray(a) && Array.isArray(b)) {
+						return a[0].localeCompare(b[0]);
+					}
+					return 0;
+				});
+			}
+
+			// Add spaces after first 2 lines
+			if (newEnv.length > 2) {
+				newEnv.splice(2, 0, '');
+			}
+			// Write to .env file
+			if (!fs.existsSync(envPath)) {
+				fs.writeFileSync(envPath, '', 'utf8');
+			}
+
+			fs.writeFileSync(envPath, newEnv.map((line: string[] | string) => Array.isArray(line) ? line.join('=') : line).join('\n'), 'utf8');
 
 			logger.info(`${updatedVars.length} variables updated in .env file.`);
 			logger.warn(`Running "${command} ${args.join(' ')}"...`);

@@ -1,6 +1,6 @@
 {
 	"name": "@encriva/env-sync",
-	"version": "1.1.1",
+	"version": "1.2.2",
 	"description": "Encrypted environment variables synchronization tool with database support",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -12,6 +12,7 @@
 		"test:cli:force-upload": "npm run build && env-sync --force-upload-variables echo Starting application...",
 		"test:cli:regular-upload": "npm run build && env-sync --upload-variables echo Starting application...",
 		"test:cli:both-upload": "npm run build && env-sync --upload-variables --force-upload-variables echo Starting application...",
+		"test:auto-group": "npm run build && env-sync --force-upload-variables --auto-group echo Starting application...",
 		"build": "tsc",
 		"prepublishOnly": "npm run build",
 		"test": "jest",

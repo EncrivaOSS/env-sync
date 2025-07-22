@@ -29,8 +29,11 @@ export class Storage implements IStorage {
 			(config && config.adapterURL) ||
 			'mongodb://localhost:27017';
 
+		// Database adı
+		const dbName = process.env.ENVSYNC_DB_NAME || 'env-sync';
+
 		// MongoDB bağlantısı oluştur
-		this.storage = new MongoAdapter(finalSecretKey, finalAdapterURL);
+		this.storage = new MongoAdapter(finalSecretKey, finalAdapterURL, dbName);
 	}
 
 	/**

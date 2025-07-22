@@ -12,7 +12,7 @@ export class MongoAdapter implements IStorage {
 	private secretKey: string;
 	private algorithm: string = 'aes-256-cbc';
 
-	constructor(secretKey: string, adapterURL?: string) {
+	constructor(secretKey: string, adapterURL?: string, dbName?: string) {
 		// Secret Key
 		this.secretKey = (secretKey || 'DEFAULT_SECRET');
 
@@ -24,7 +24,7 @@ export class MongoAdapter implements IStorage {
 
 		// MongoDB bağlantısını başlat
 		this.client = new MongoClient(dbURL);
-		this.db = this.client.db("env-sync");
+		this.db = this.client.db(dbName);
 		this.collection = this.db.collection("environment");
 	}
 

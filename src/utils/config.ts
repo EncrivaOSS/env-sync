@@ -75,5 +75,5 @@ export function getDefaultOptions(adapter: string): Record<string, any> {
 }
 
 export function getBlacklistVariables(): string[] {
-	return ['ENVSYNC_SECRET_KEY', 'ENVSYNC_ADAPTER_URL'];
+	return ['ENVSYNC_SECRET_KEY', 'ENVSYNC_ADAPTER_URL', 'ENVSYNC_DB_NAME'];
 }
